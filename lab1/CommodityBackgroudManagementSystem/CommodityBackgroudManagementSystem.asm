@@ -56,9 +56,10 @@ GOODINFO5   DB  "已售数量：",0
 GOODINFO6   DB  "利润率：",0
 OP2INFO1    DB  "请输入出售数量：",0
 OP3INFO1    DB  "请输入进货数量：",0
-SALENUM DW  0
-INNUM   DB  0
+SALENUM DW  0,0
+INNUM   DW  0,0
 BAIFENHAO   DB  "%",0
+FUHAO   DB  "-",0,0,0
 
 
 .STACK 200
@@ -71,30 +72,30 @@ main proc c
     invoke printf,offset lpFmt,OFFSET WELCOME
     invoke printf,offset lpFmt,OFFSET MENUBOTTOM
     invoke printf,offset lpFmt,OFFSET COUNTips
-    ;invoke scanf,offset spFmt,OFFSET INAME
+    invoke scanf,offset spFmt,OFFSET INAME
     invoke printf,offset lpFmt,OFFSET PASSTips
-    ;invoke scanf,offset spFmt,OFFSET INPASS
+    invoke scanf,offset spFmt,OFFSET INPASS
 
     ;判断账号和密码的正确性
-;    MOV ECX,0
-;NAMEJUDGE:
-;    MOV EAX,DWORD PTR INAME[ECX*4]
-;    MOV EBX,DWORD PTR BNAME[ECX*4]
-;    CMP EAX,EBX
-;    JNE LOGINERRORMARK
-;    ADD ECX,1
-;    CMP ECX,3
-;    JNE NAMEJUDGE
-;    
-;    MOV ECX,0
-;PASSJUDGE:
-;    MOV EAX,DWORD PTR INPASS[ECX*4]
-;    MOV EBX,DWORD PTR BPASS[ECX*4]
-;    CMP EAX,EBX
-;    JNE LOGINERRORMARK
-;    ADD ECX,1
-;    CMP ECX,3
-;    JNE PASSJUDGE
+    MOV ECX,0
+NAMEJUDGE:
+    MOV EAX,DWORD PTR INAME[ECX*4]
+    MOV EBX,DWORD PTR BNAME[ECX*4]
+    CMP EAX,EBX
+    JNE LOGINERRORMARK
+    ADD ECX,1
+    CMP ECX,3
+    JNE NAMEJUDGE
+    
+    MOV ECX,0
+PASSJUDGE:
+    MOV EAX,DWORD PTR INPASS[ECX*4]
+    MOV EBX,DWORD PTR BPASS[ECX*4]
+    CMP EAX,EBX
+    JNE LOGINERRORMARK
+    ADD ECX,1
+    CMP ECX,3
+    JNE PASSJUDGE
 
     MOV EAX,-1  ;记录选项
 SHOWMENU:
@@ -104,6 +105,8 @@ SHOWMENU:
     invoke printf,offset lpFmt,OFFSET MENUBOTTOM
     invoke printf,offset lpFmt,OFFSET INPUTips
     ;输入选项
+    MOV EAX,0
+    MOV DWORD PTR CHOICE,EAX
     invoke scanf,offset spFmt,offset CHOICE
     MOV EAX,DWORD PTR CHOICE
     ;跳转
@@ -215,9 +218,23 @@ OP1:
     ADD ESI,2
     invoke printf,offset lpFmt,offset GOODINFO6
     MOV AX,WORD PTR [ESI]
+    SHR AX,15
+    CMP AX,1
+    JNE OP1POSPRI
+
+    invoke printf,offset lpFmt,offset FUHAO
+    MOV AX,WORD PTR [ESI]
+    IMUL AX,-1
     invoke printf,offset npFmt,AX
     invoke printf,offset lpFmt,offset BAIFENHAO
-    invoke printf,offset lpFmt,offset NEWLINE
+
+    POP EAX
+    JMP SHOWMENU
+OP1POSPRI:
+    MOV AX,WORD PTR [ESI]
+    invoke printf,offset npFmt,AX
+    invoke printf,offset lpFmt,offset BAIFENHAO
+    ;invoke printf,offset lpFmt,offset NEWLINE
 
     POP EAX
     JMP SHOWMENU
@@ -493,8 +510,32 @@ OP4:
     MOV DX,WORD PTR [ESI]+16
     IMUL AX,CX
     IMUL BX,DX
-    MOV CX,AX
-    SUB CX,BX
+    
+    CMP BX,AX
+    JNLE POSI
+    PUSH AX
+    PUSH BX
+    PUSH AX
+    POP BX
+    POP AX
+
+    SUB BX,AX
+    POP AX
+    MOV CX,BX
+    IMUL CX,100
+    MOV DX,0
+    PUSH AX
+    PUSH CX
+    POP AX
+    POP CX
+    IDIV CX
+    IMUL AX,-1
+    MOV WORD PTR [ESI]+18,AX
+    JMP SHOWRATE
+
+POSI:
+    SUB BX,AX
+    MOV CX,BX
     IMUL CX,100
     MOV DX,0
     PUSH AX
@@ -503,7 +544,23 @@ OP4:
     POP CX
     IDIV CX
     MOV WORD PTR [ESI]+18,AX
+SHOWRATE:
     invoke printf,offset lpFmt,offset GOODINFO6
+    MOV ECX,0
+    MOV CX,WORD PTR [ESI]+18
+    SHR CX,15
+    CMP CX,1
+    JNE PPOSI
+
+    invoke printf,offset lpFmt,offset FUHAO
+    MOV ECX,0
+    MOV CX,WORD PTR [ESI]+18
+    IMUL CX,-1
+    invoke printf,offset npFmt,CX
+    invoke printf,offset lpFmt,offset BAIFENHAO
+    POP EAX 
+    JMP SHOWMENU
+PPOSI:
     MOV ECX,0
     MOV CX,WORD PTR [ESI]+18
     invoke printf,offset npFmt,CX
