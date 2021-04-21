@@ -14,17 +14,30 @@ x dw 10,20
 .STACK 200
 .CODE
 main proc c
-	mov ax,0
-	add ax,7fffh
-	xchg ah,al
-	dec ax
-	add ax,0ah
-	not ax
-	sub ax,0ffffh
-	or ax,0abcdh
-	and ax,0dcbah
-	sal ax,1
-	rcl ax,1
-	mov ax,0
+	call display
+	
+	mas1 db 'good',0ah,0dh,0
+
+	call display
+	
+	mas2 db 'good',0ah,0dh,0
+
+	invoke ExitProcess,0
 main endp
+
+display proc
+	
+	pop ebx
+
+p1:
+	cmp byte ptr [ebx],0
+	je exit
+	add ebx,1
+	jmp p1
+
+exit:
+	inc ebx 
+	pop ebx
+	ret
+display endp
 END
