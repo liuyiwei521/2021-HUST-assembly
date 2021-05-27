@@ -27,6 +27,8 @@ GOODS  STRUCT
     RATE       DW  0
 GOODS  ENDS
 
+EXTERN rname:byte
+
 .DATA
 lpFmt   DB	"%s",0ah,0dh,0
 npFmt   DB "%d",0
@@ -90,7 +92,9 @@ NUMARRAY DB N DUP(0)
 
 main proc c
     MOV EAX,-1
-    JMP SHOWMENU
+    ;MOV al,byte ptr rname
+
+    ;JMP SHOWMENU
 
     ;登录，提示输入用户名和密码
     myprint offset lpFmt,OFFSET MENUTOP
